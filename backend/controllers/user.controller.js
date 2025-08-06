@@ -1,5 +1,6 @@
-import { User } from "../models/user.model";
+import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
 
 
 export const register = async(req, res) => {
@@ -15,8 +16,8 @@ export const register = async(req, res) => {
 
     const user = await User.findOne({email});
     if(user){
-      return res.status.json({
-        message:'User alread exist with this emial',
+      return res.status(400).json({
+        message:'User already exists with this email',
         success: false,
       })
     }
@@ -44,7 +45,7 @@ export const register = async(req, res) => {
 export const login = async(req, res) => {
   try {
     const {email, password, role} = req.body;
-    if(!email || !password || role){
+    if(!email || !password || !role){
       return res.status(400).json({
         message:'Something is missing',
         success: false,
@@ -53,7 +54,7 @@ export const login = async(req, res) => {
 
     let user = await User.findOne({email});
 
-    if(user){
+    if(!user){
       return res.status(400).json({
         message: "Incorrect email or Password",
         status: false,
@@ -134,16 +135,16 @@ export const updateProfile = async(req, res)=>{
 
 
 
-
     const skillsArray = skills.split(',');
     const userId = req._id;
-    let user = await User.findById(email)
-    if(user){
+    let user = await User.findById(userId)
+    if(!user){
       return res.status(400).json({
         message:"User not found",
         success: false,
       })
     } 
+    
     //updating data
     user.fullname = fullname,
     user.email = email,
@@ -165,7 +166,7 @@ export const updateProfile = async(req, res)=>{
     return res.status(200).json({
       message:"Profile updated successfully",
       user,
-      succeses: true,
+      success: true,
     })
   } catch (error) {
     
