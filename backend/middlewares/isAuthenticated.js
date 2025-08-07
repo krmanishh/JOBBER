@@ -10,7 +10,7 @@ const isAutheticated = async(req, res, next) =>{
       })
     }
 
-    const decode = await jwt.verify(token, process.env.SECRET_KEY);
+    const decode = jwt.verify(token, process.env.SECRET_KEY);
     if(!decode){
       return res.status(401).json({
         message:"Invalid Token",
@@ -21,6 +21,10 @@ const isAutheticated = async(req, res, next) =>{
     next();
   } catch (error){
     console.log(error);
+      return res.status(401).json({
+        message: "Unauthorized: Invalid or expired token",
+        success: false,
+      });
   }
 }
 

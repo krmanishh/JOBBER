@@ -81,7 +81,7 @@ export const login = async(req, res) => {
     }
     const token = await jwt.sign(tokenData, process.env.SECRET_KEY, {expiresIn:'1d'});
 //to check ki kya send kar rhe hai hum aage user me se, retrun karte time -
-    user = {
+    user = {  
       _id: user._id,
       fullname: user.fullname,
       email: user.email,
@@ -92,9 +92,10 @@ export const login = async(req, res) => {
 
     return res.status(200)
     .cookie("token", token, {
-      maxAge:1*24*60*60, 
-      httpsOnly: true, 
-      sameSite:'strict'
+      maxAge:1*24*60*60*1000, 
+      httpOnly: true, 
+      secure: false,   
+      sameSite:'lax'
     })
     .json({
       message:`Welcome Back ${user.fullname}`,
@@ -124,20 +125,17 @@ export const updateProfile = async(req, res)=>{
     const {fullname, email, phoneNumber, bio, skills} = req.body;
     const file = req.file;
   
-
-    if(!fullname || !email || !phoneNumber || !bio || !skills){
-      return res.status(400).json({
-        message:"Something is missing",
-        success: false
-      })
-    }
     //cloudinary setup
 
 
 
-    const skillsArray = skills.split(',');
-    const userId = req._id;
+    let skillsArray;
+    if(skills){
+      skillsArray = skills.split(',');
+    }
+    const userId = req.id;
     let user = await User.findById(userId)
+    if(user) console.log(`User id fetched successfully:`, user);
     if(!user){
       return res.status(400).json({
         message:"User not found",
@@ -146,11 +144,11 @@ export const updateProfile = async(req, res)=>{
     } 
     
     //updating data
-    user.fullname = fullname,
-    user.email = email,
-    user.phoneNumber = phoneNumber,
-    user.profile.bio = bio,
-    user.profile.skills = skillsArray
+    if(fullname) user.fullname = fullname;
+    if(email) user.email = email;
+    if(phoneNumber) user.phoneNumber = phoneNumber;
+    if(bio) user.profile.bio = bio;
+    if(skills) user.profile.skills = skillsArray
 
     await user.save();
 
